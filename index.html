@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NightConnect P2P</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap');
+        
+        :root {
+            --bg-color: #ffffff;
+            --container-bg: #f0f0f0;
+            --header-bg: #e0e0e0;
+            --text-color: #333333;
+            --input-bg: #ffffff;
+            --message-sent-bg: #4CAF50;
+            --message-received-bg: #2196F3;
+            --button-bg: #4CAF50;
+            --button-color: #ffffff;
+            --system-message-bg: #424242;
+        }
+
+        .dark {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --header-bg: #2c2c2c;
+            --text-color: #e0e0e0;
+            --input-bg: #3a3a3a;
+            --message-sent-bg: #4a4a4a;
+            --message-received-bg: #333333;
+            --button-bg: #4CAF50;
+            --button-color: #ffffff;
+            --system-message-bg: #424242;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .chat-container {
+            width: 100%;
+            height: 100vh;
+            background-color: var(--container-bg);
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s;
+        }
+        
+        .chat-header {
+            background-color: var(--header-bg);
+            padding: 15px;
+            text-align: left;
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        #connection-info {
+            background-color: var(--header-bg);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        #peer-id-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--input-bg);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+        
+        #peer-id {
+            font-family: monospace;
+            font-weight: bold;
+        }
+        
+        #peer-id-input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .main-chat {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        #messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #messages p {
+            max-width: 80%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        
+        #messages p[data-sender="You"] {
+            align-self: flex-end;
+            background-color: var(--message-sent-bg);
+            color: #ffffff;
+        }
+        
+        #messages p[data-sender="Peer"] {
+            align-self: flex-start;
+            background-color: var(--message-received-bg);
+            color: #ffffff;
+        }
+
+        #messages p[data-sender="System"] {
+            align-self: center;
+            background-color: var(--system-message-bg);
+            color: #ffffff;
+            font-style: italic;
+        }
+        
+        #chat-form {
+            display: flex;
+            padding: 15px;
+            background-color: var(--header-bg);
+            transition: background-color 0.3s;
+        }
+        
+        #chat-input {
+            flex-grow: 1;
+            background-color: var(--input-bg);
+            border: none;
+            padding: 10px;
+            border-radius: 20px;
+            color: var(--text-color);
+            font-size: 1em;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        button {
+            background-color: var(--button-bg);
+            color: var(--button-color);
+            border: none;
+            padding: 10px 20px;
+            margin-left: 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px;
+            transition: transform 0.3s;
+        }
+
+        #theme-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--container-bg);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--message-received-bg);
+            border-radius: 5px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--message-sent-bg);
+        }
+
+        /* Media query for wider screens */
+        @media (min-width: 1024px) {
+            .chat-container {
+                max-width: 1200px;
+                height: 80vh;
+                flex-direction: row;
+                border-radius: 20px;
+                overflow: hidden;
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+            }
+
+            .sidebar {
+                width: 300px;
+                display: flex;
+                flex-direction: column;
+                border-right: 1px solid var(--header-bg);
+            }
+
+            .chat-header {
+                padding: 20px;
+                font-size: 1.5em;
+            }
+
+            #connection-info {
+                flex-grow: 1;
+                padding: 20px;
+                justify-content: center;
+            }
+
+            #peer-id-display, #peer-id-input {
+                font-size: 1.1em;
+                padding: 15px;
+            }
+
+            #messages {
+                padding: 30px;
+                font-size: 1.1em;
+            }
+
+            #messages p {
+                max-width: 60%;
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            #chat-form {
+                padding: 20px 30px;
+            }
+
+            #chat-input {
+                padding: 15px 20px;
+                font-size: 1.1em;
+            }
+
+            button {
+                padding: 15px 30px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="sidebar">
+            <div class="chat-header">
+                <span>NightConnect P2P</span>
+                <button id="theme-toggle" onclick="toggleTheme()">☀️</button>
+            </div>
+            <div id="connection-info">
+                <div id="peer-id-display">
+                    <span>Your ID:</span>
+                    <span id="peer-id"></span>
+                </div>
+                <input type="text" id="peer-id-input" placeholder="Enter peer ID to connect">
+                <button onclick="connectToPeer()">Connect</button>
+            </div>
+        </div>
+        <div class="main-chat">
+            <div id="messages"></div>
+            <form id="chat-form" onsubmit="sendMessage(event)">
+                <input type="text" id="chat-input" placeholder="Type your message...">
+                <button type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let peer;
+        let connection;
+
+        function generateShortId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 3; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        function initPeer() {
+            const shortId = generateShortId();
+            peer = new Peer(shortId, {
+                debug: 2
+            });
+
+            peer.on('open', (id) => {
+                document.getElementById('peer-id').textContent = id;
+            });
+
+            peer.on('error', (error) => {
+                console.error('PeerJS error:', error);
+                if (error.type === 'unavailable-id') {
+                    initPeer();
+                }
+            });
+
+            peer.on('connection', (conn) => {
+                connection = conn;
+                setupConnection();
+            });
+        }
+
+        function connectToPeer() {
+            const peerId = document.getElementById('peer-id-input').value.trim().toUpperCase();
+            if (peerId) {
+                connection = peer.connect(peerId);
+                setupConnection();
+            }
+        }
+
+        function setupConnection() {
+            connection.on('open', () => {
+                addMessage('Connected to peer!', 'System');
+            });
+            connection.on('data', (data) => {
+                addMessage(data, 'Peer');
+            });
+        }
+
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (message && connection && connection.open) {
+                connection.send(message);
+                addMessage(message, 'You');
+                input.value = '';
+            }
+        }
+
+        function addMessage(message, sender) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('p');
+            messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+            messageElement.setAttribute('data-sender', sender);
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const themeToggle = document.getElementById('theme-toggle');
+            if (document.documentElement.classList.contains('dark')) {
+                themeToggle.textContent = '☀️';
+            } else {
+                themeToggle.textContent = '🌙';
+            }
+        }
+
+        window.onload = function() {
+            initPeer();
+            updateThemeIcon();
+        };
+    </script>
+</body>
+</html>
