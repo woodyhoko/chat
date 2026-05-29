@@ -2,7 +2,7 @@
 
 A **peer-to-peer browser chat** with zero server involvement in message delivery. Two peers connect directly via WebRTC; messages never touch a backend, are never stored, and disappear when the tab closes.
 
-**[▶ Live Demo](https://woodyhoko.github.io/chat)**
+**[▶ Live Demo](https://woodyhoko.github.io/chat/demo.html)**
 
 ---
 
