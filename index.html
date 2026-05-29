@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NightConnect — Serverless P2P Chat</title>
+<meta name="description" content="A peer-to-peer browser chat with zero server involvement in message delivery. Two peers connect directly via WebRTC — messages never touch a backend.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Major+Mono+Display&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#080513;--ink:#eae6ff;--muted:#9b93c4;--v:#8b5cf6;--cy:#22d3ee;--pk:#f472b6;--line:rgba(255,255,255,.08)}
+  *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:"Space Grotesk",system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .bg{position:fixed;inset:0;z-index:0;background:radial-gradient(800px 600px at 20% 10%,rgba(139,92,246,.3),transparent 55%),radial-gradient(700px 600px at 85% 30%,rgba(34,211,238,.22),transparent 55%),var(--bg)}
+  canvas#net{position:fixed;inset:0;z-index:1;opacity:.7}
+  .wrap{position:relative;z-index:3;max-width:1020px;margin:0 auto;padding:0 24px}
+  header{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding:80px 0 40px}
+  .tag{font-family:"Major Mono Display";font-size:13px;letter-spacing:2px;color:var(--cy);margin-bottom:22px}
+  h1{font-size:clamp(40px,7.5vw,88px);font-weight:700;line-height:1;letter-spacing:-2px}
+  h1 .gr{background:linear-gradient(110deg,var(--v),var(--pk),var(--cy));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:clamp(16px,2vw,21px);color:var(--muted);max-width:640px;margin:26px 0}
+  .cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;border-radius:14px;font-weight:700;font-size:15px;transition:.2s;border:1px solid var(--line)}
+  .btn.p{background:linear-gradient(110deg,var(--v),var(--pk));color:#fff;border:none;box-shadow:0 12px 36px rgba(139,92,246,.4)}.btn.p:hover{transform:translateY(-3px)}
+  .btn.g{background:rgba(255,255,255,.04)}.btn.g:hover{border-color:var(--cy);color:var(--cy);transform:translateY(-3px)}
+  section{padding:50px 0}
+  .lbl{font-family:"Major Mono Display";font-size:13px;color:var(--pk);margin-bottom:10px}
+  .ttl{font-weight:700;font-size:clamp(23px,3.4vw,36px);margin-bottom:30px;letter-spacing:-.5px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:18px}
+  .c{background:rgba(20,14,40,.55);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:18px;padding:26px;transition:.2s}
+  .c:hover{transform:translateY(-5px);border-color:rgba(34,211,238,.45)}
+  .c .ic{font-size:24px;margin-bottom:12px}.c h3{font-size:16px;margin-bottom:8px}.c p{font-size:14px;color:var(--muted)}
+  .flow{font-family:"Major Mono Display";display:flex;flex-wrap:wrap;align-items:center;gap:14px;color:var(--muted);font-size:14px;background:rgba(20,14,40,.5);border:1px solid var(--line);border-radius:16px;padding:24px}
+  .flow .node{color:var(--cy)}.flow .arr{color:var(--v)}
+  footer{border-top:1px solid var(--line);margin-top:50px;padding:40px 0 60px;text-align:center;color:var(--muted);font-size:14px}
+  footer a{color:var(--cy)}.fl{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+</style></head>
+<body>
+<div class="bg"></div><canvas id="net"></canvas>
+<div class="wrap">
+  <header>
+    <div class="tag">webrtc · zero-server</div>
+    <h1>Messages that<br><span class="gr">touch no server.</span></h1>
+    <p class="lede">Two browsers connect directly over a WebRTC data channel (SCTP over DTLS). The signaling server is used only for the handshake — once the channel opens, every message flows peer-to-peer, encrypted, never stored, gone when the tab closes.</p>
+    <div class="cta">
+      <a class="btn p" href="demo.html">▶ Open Live Demo</a>
+      <a class="btn g" href="https://github.com/woodyhoko/chat#readme">📖 Documentation</a>
+      <a class="btn g" href="https://github.com/woodyhoko/chat">⌥ Source</a>
+    </div>
+  </header>
+
+  <section>
+    <div class="lbl">connection</div>
+    <div class="ttl">Server only for the handshake.</div>
+    <div class="flow"><span class="node">Peer A4Z</span><span class="arr">──DTLS DataChannel──</span><span class="node">Peer Q9M</span><span class="arr">·</span><span>PeerJS signaling = SDP + ICE only, zero message traffic</span></div>
+  </section>
+
+  <section>
+    <div class="lbl">properties</div>
+    <div class="ttl">Privacy by architecture.</div>
+    <div class="grid">
+      <div class="c"><div class="ic">🔒</div><h3>DTLS encrypted</h3><p>All data is encrypted in transit; the signaling server never sees message content.</p></div>
+      <div class="c"><div class="ic">🚫</div><h3>No persistence</h3><p>Nothing is written to any backend. Refresh the tab and the conversation is gone.</p></div>
+      <div class="c"><div class="ic">🆔</div><h3>No account</h3><p>A random 3-character peer ID, shared out-of-band. No email, no login, no tracking.</p></div>
+      <div class="c"><div class="ic">📡</div><h3>NAT traversal</h3><p>STUN-based hole-punching via PeerJS; ordered SCTP delivery keeps messages in sequence.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="fl"><a href="demo.html">Live Demo</a><a href="https://github.com/woodyhoko/chat">GitHub</a><a href="https://github.com/woodyhoko/chat#readme">README</a></div>
+    Built by <a href="https://github.com/woodyhoko">woodyhoko</a> · NightConnect — Serverless P2P Chat
+  </footer>
+</div>
+<script>
+  const cv=document.getElementById('net'),x=cv.getContext('2d');let W,H,N=[];
+  function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;N=[];for(let i=0;i<48;i++)N.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4});}
+  rs();addEventListener('resize',rs);
+  function tick(){x.clearRect(0,0,W,H);for(const n of N){n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1;}
+    for(let i=0;i<N.length;i++){for(let j=i+1;j<N.length;j++){const dx=N[i].x-N[j].x,dy=N[i].y-N[j].y,d=Math.hypot(dx,dy);if(d<150){x.strokeStyle="rgba(139,92,246,"+(1-d/150)*.4+")";x.lineWidth=.6;x.beginPath();x.moveTo(N[i].x,N[i].y);x.lineTo(N[j].x,N[j].y);x.stroke();}}}
+    for(const n of N){x.beginPath();x.arc(n.x,n.y,2,0,6.28);x.fillStyle="rgba(34,211,238,.8)";x.fill();}requestAnimationFrame(tick);}
+  tick();
+</script>
+</body></html>
